@@ -1,8 +1,10 @@
+from drive_upload import upload_file
 from flask import Flask, request, jsonify
 import subprocess
 import os
 import json
 import urllib.request
+import time
 
 app = Flask(__name__)
 
@@ -12,7 +14,6 @@ app = Flask(__name__)
 MODEL_PATH = "emotion_model.keras"
 WEIGHTS_PATH = "emotion_weights.weights.h5"
 
-# Google Drive direct links
 MODEL_URL = "https://drive.google.com/uc?id=18aC0jocrEqAlkm4sNGBcmFtva1ma3SBL"
 WEIGHTS_URL = "https://drive.google.com/uc?id=1EKlKUap9y_Hp-1RxVGYbiE5Oc_UrubYD"
 
@@ -40,7 +41,7 @@ def home():
 
 
 # =========================
-# IMAGE PREDICTION
+# IMAGE PREDICTION + DRIVE
 # =========================
 @app.route("/predict-image", methods=["POST"])
 def predict_image():
@@ -49,25 +50,31 @@ def predict_image():
             return jsonify({"success": False, "error": "No file uploaded"}), 400
 
         file = request.files['file']
-        path = "temp.jpg"
+        path = f"temp_{int(time.time())}.jpg"
         file.save(path)
 
         result = subprocess.check_output(
-            ["python", "predict_image.py", path]
+            ["python3", "predict_image.py", path]
         ).decode()
 
-        return jsonify(json.loads(result))
+        drive_url = upload_file(path, os.path.basename(path))
+
+        return jsonify({
+            "success": True,
+            "data": json.loads(result),
+            "file_url": drive_url
+        })
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
     finally:
-        if os.path.exists("temp.jpg"):
-            os.remove("temp.jpg")
+        if os.path.exists(path):
+            os.remove(path)
 
 
 # =========================
-# VIDEO PREDICTION
+# VIDEO PREDICTION + DRIVE
 # =========================
 @app.route("/predict-video", methods=["POST"])
 def predict_video():
@@ -76,25 +83,31 @@ def predict_video():
             return jsonify({"success": False, "error": "No file uploaded"}), 400
 
         file = request.files['file']
-        path = "temp.mp4"
+        path = f"temp_{int(time.time())}.mp4"
         file.save(path)
 
         result = subprocess.check_output(
-            ["python", "predict_video.py", path]
+            ["python3", "predict_video.py", path]
         ).decode()
 
-        return jsonify(json.loads(result))
+        drive_url = upload_file(path, os.path.basename(path))
+
+        return jsonify({
+            "success": True,
+            "data": json.loads(result),
+            "file_url": drive_url
+        })
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
     finally:
-        if os.path.exists("temp.mp4"):
-            os.remove("temp.mp4")
+        if os.path.exists(path):
+            os.remove(path)
 
 
 # =========================
-# RUN SERVER (RENDER READY)
+# RUN SERVER
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
