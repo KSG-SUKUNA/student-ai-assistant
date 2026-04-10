@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $absoluteMediaPath = realpath($targetFile);
 
     // API CALL
-    $apiUrl = "http://127.0.0.1:5000/predict-image";
+    $apiUrl = "https://student-ai-api.onrender.com/predict-image";
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $apiUrl);
