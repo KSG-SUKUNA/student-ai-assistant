@@ -1,10 +1,11 @@
-from drive_upload import upload_file
 from flask import Flask, request, jsonify
 import subprocess
 import os
 import json
 import urllib.request
-import time
+
+# 🔥 Google Drive upload
+from drive_upload import upload_file
 
 app = Flask(__name__)
 
@@ -18,6 +19,9 @@ MODEL_URL = "https://drive.google.com/uc?id=18aC0jocrEqAlkm4sNGBcmFtva1ma3SBL"
 WEIGHTS_URL = "https://drive.google.com/uc?id=1EKlKUap9y_Hp-1RxVGYbiE5Oc_UrubYD"
 
 
+# =========================
+# DOWNLOAD MODEL
+# =========================
 def download_file(url, path):
     if not os.path.exists(path):
         print(f"Downloading {path}...")
@@ -25,9 +29,6 @@ def download_file(url, path):
         print(f"{path} downloaded!")
 
 
-# =========================
-# DOWNLOAD MODEL AT STARTUP
-# =========================
 download_file(MODEL_URL, MODEL_PATH)
 download_file(WEIGHTS_URL, WEIGHTS_PATH)
 
@@ -37,11 +38,17 @@ download_file(WEIGHTS_URL, WEIGHTS_PATH)
 # =========================
 @app.route("/")
 def home():
-    return "AI API Running ✅"
+    return jsonify({
+        "status": "API WORKING",
+        "routes": [
+            "/predict-image (POST)",
+            "/predict-video (POST)"
+        ]
+    })
 
 
 # =========================
-# IMAGE PREDICTION + DRIVE
+# IMAGE PREDICTION
 # =========================
 @app.route("/predict-image", methods=["POST"])
 def predict_image():
@@ -50,14 +57,16 @@ def predict_image():
             return jsonify({"success": False, "error": "No file uploaded"}), 400
 
         file = request.files['file']
-        path = f"temp_{int(time.time())}.jpg"
+        path = "temp.jpg"
         file.save(path)
 
+        # 🔥 RUN MODEL
         result = subprocess.check_output(
-            ["python3", "predict_image.py", path]
+            ["python", "predict_image.py", path]
         ).decode()
 
-        drive_url = upload_file(path, os.path.basename(path))
+        # 🔥 UPLOAD TO DRIVE
+        drive_url = upload_file(path, path)
 
         return jsonify({
             "success": True,
@@ -69,12 +78,12 @@ def predict_image():
         return jsonify({"success": False, "error": str(e)}), 500
 
     finally:
-        if os.path.exists(path):
-            os.remove(path)
+        if os.path.exists("temp.jpg"):
+            os.remove("temp.jpg")
 
 
 # =========================
-# VIDEO PREDICTION + DRIVE
+# VIDEO PREDICTION
 # =========================
 @app.route("/predict-video", methods=["POST"])
 def predict_video():
@@ -83,14 +92,16 @@ def predict_video():
             return jsonify({"success": False, "error": "No file uploaded"}), 400
 
         file = request.files['file']
-        path = f"temp_{int(time.time())}.mp4"
+        path = "temp.mp4"
         file.save(path)
 
+        # 🔥 RUN MODEL
         result = subprocess.check_output(
-            ["python3", "predict_video.py", path]
+            ["python", "predict_video.py", path]
         ).decode()
 
-        drive_url = upload_file(path, os.path.basename(path))
+        # 🔥 UPLOAD TO DRIVE
+        drive_url = upload_file(path, path)
 
         return jsonify({
             "success": True,
@@ -102,8 +113,8 @@ def predict_video():
         return jsonify({"success": False, "error": str(e)}), 500
 
     finally:
-        if os.path.exists(path):
-            os.remove(path)
+        if os.path.exists("temp.mp4"):
+            os.remove("temp.mp4")
 
 
 # =========================
