@@ -4,23 +4,30 @@ from googleapiclient.http import MediaFileUpload
 import json
 import os
 
-# 🔥 LOAD FROM ENV (Render safe)
-creds_json = json.loads(os.environ["GOOGLE_CREDS"])
-
 SCOPES = ['https://www.googleapis.com/auth/drive']
 
-creds = service_account.Credentials.from_service_account_info(
-    creds_json,
-    scopes=SCOPES
-)
+def get_drive_service():
+    creds_str = os.environ.get("GOOGLE_CREDS")
 
-service = build('drive', 'v3', credentials=creds)
+    if not creds_str:
+        raise Exception("GOOGLE_CREDS ENV NOT SET ❌")
+
+    creds_json = json.loads(creds_str)
+
+    creds = service_account.Credentials.from_service_account_info(
+        creds_json,
+        scopes=SCOPES
+    )
+
+    return build('drive', 'v3', credentials=creds)
 
 
 def upload_file(file_path, filename):
+    service = get_drive_service()
+
     file_metadata = {
         'name': filename,
-        'parents': ['YOUR_FOLDER_ID']  # 🔥 PUT YOUR REAL FOLDER ID
+        'parents': ['YOUR_FOLDER_ID']  # 🔥 PUT YOUR FOLDER ID HERE
     }
 
     media = MediaFileUpload(file_path, resumable=True)
