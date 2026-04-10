@@ -3,4 +3,4 @@ services:
     name: student-ai-api
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: gunicorn ai-api.app:app
