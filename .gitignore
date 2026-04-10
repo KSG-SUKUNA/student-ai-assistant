@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+uploads/
+outputs/
+database.sqlite
+
+# REMOVE MODEL FILES
+ai-api/emotion_model.keras
+ai-api/emotion_weights.weights.h5
