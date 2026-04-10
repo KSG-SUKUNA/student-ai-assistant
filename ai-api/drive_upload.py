@@ -1,23 +1,26 @@
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+import json
+import os
 
-SCOPES = ['https://www.googleapis.com/auth/drive.file']
-SERVICE_ACCOUNT_FILE = 'service-account.json'
+# 🔥 LOAD FROM ENV (Render safe)
+creds_json = json.loads(os.environ["GOOGLE_CREDS"])
 
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+SCOPES = ['https://www.googleapis.com/auth/drive']
 
-service = build('drive', 'v3', credentials=credentials)
+creds = service_account.Credentials.from_service_account_info(
+    creds_json,
+    scopes=SCOPES
+)
 
-# 👉 PUT YOUR FOLDER ID HERE
-FOLDER_ID = '1-0Owu92XLil26jktiZ_Yfrn_iWMy4q3g'
+service = build('drive', 'v3', credentials=creds)
 
 
-def upload_file(file_path, file_name):
+def upload_file(file_path, filename):
     file_metadata = {
-        'name': file_name,
-        'parents': [FOLDER_ID]
+        'name': filename,
+        'parents': ['YOUR_FOLDER_ID']  # 🔥 PUT YOUR REAL FOLDER ID
     }
 
     media = MediaFileUpload(file_path, resumable=True)
@@ -30,4 +33,4 @@ def upload_file(file_path, file_name):
 
     file_id = file.get('id')
 
-    return f"https://drive.google.com/uc?id={file_id}"
+    return f"https://drive.google.com/file/d/{file_id}/view"
