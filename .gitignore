@@ -4,6 +4,7 @@ __pycache__/
 uploads/
 outputs/
 database.sqlite
+service-account.json
 
 # REMOVE MODEL FILES
 ai-api/emotion_model.keras
